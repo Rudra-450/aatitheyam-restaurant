@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: aatitheyam_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-restaurant_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespassword}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-restaurant_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - restaurant_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aatitheyam_backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PROJECT_NAME=${PROJECT_NAME:-Aatitheyam Cafe & Bhojnalaya}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgrespassword}@db:5432/${POSTGRES_DB:-restaurant_db}
+      - SECRET_KEY=${SECRET_KEY:-super-secret-production-grade-key-change-in-env-file-at-least-32-chars-long}
+      - COOKIE_NAME=${COOKIE_NAME:-restaurant_owner_session}
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
+      - PUBLIC_MENU_BASE_URL=${PUBLIC_MENU_BASE_URL:-http://localhost/menu}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-10080}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - backend_uploads:/app/static/uploads
+    networks:
+      - restaurant_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aatitheyam_frontend
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_conf:/etc/letsencrypt
+    networks:
+      - restaurant_network
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: aatitheyam_certbot
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_conf:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - restaurant_network
+
+volumes:
+  postgres_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  certbot_www:
+    driver: local
+  certbot_conf:
+    driver: local
+
+networks:
+  restaurant_network:
+    driver: bridge
