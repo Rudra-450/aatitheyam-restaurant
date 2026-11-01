@@ -1,5 +1,6 @@
 import React from 'react';
-import { Clock, MapPin, Phone, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Clock, MapPin, Phone, ShieldCheck, Sparkles } from 'lucide-react';
 import { Restaurant } from '../../../types';
 
 interface MenuHeaderProps {
@@ -9,6 +10,17 @@ interface MenuHeaderProps {
 export const MenuHeader: React.FC<MenuHeaderProps> = ({ restaurant }) => {
   return (
     <header className="relative overflow-hidden bg-gradient-to-b from-[#14161f] via-[#0f1118] to-[#0c0d12] border-b border-white/5 pt-8 pb-10 px-4 sm:px-6 lg:px-8">
+      {/* Top Right Owner Login Shortcut */}
+      <Link
+        to="/admin"
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-amber-500/15 border border-white/10 hover:border-amber-500/40 text-xs font-medium text-gray-300 hover:text-amber-400 transition-all backdrop-blur-md shadow-md"
+        title="Owner Login / Admin Dashboard"
+      >
+        <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+        <span className="hidden sm:inline">Owner Login</span>
+        <span className="sm:hidden">Owner</span>
+      </Link>
+
       {/* Subtle luxury ambient glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-48 bg-gradient-to-b from-amber-500/10 to-transparent blur-3xl pointer-events-none" />
 

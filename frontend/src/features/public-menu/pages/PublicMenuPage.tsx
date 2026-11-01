@@ -107,9 +107,15 @@ export const PublicMenuPage: React.FC = () => {
       <footer className="mt-auto border-t border-white/5 bg-[#090a0f] py-8 px-4 text-center">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
           <p>© {new Date().getFullYear()} {data.restaurant.name}. All culinary rights reserved.</p>
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span>Digital View-Only Menu Platform</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span>Digital View-Only Menu Platform</span>
+            </div>
+            <span>•</span>
+            <a href="/admin" className="hover:text-amber-400 transition-colors">
+              Owner Portal
+            </a>
           </div>
         </div>
       </footer>
