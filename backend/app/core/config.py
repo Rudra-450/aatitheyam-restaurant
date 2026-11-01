@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -19,6 +20,19 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./restaurant.db"  # Defaults to async SQLite for out-of-the-box local execution, or set postgresql+asyncpg in .env
     
+    @field_validator("DATABASE_URL", mode="after")
+    @classmethod
+    def normalize_database_url(cls, v: str) -> str:
+        if v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
+            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif v.startswith("sqlite+aiosqlite:///./"):
+            rel_path = v[len("sqlite+aiosqlite:///./"):]
+            abs_path = (BASE_DIR / rel_path).resolve().as_posix()
+            return f"sqlite+aiosqlite:///{abs_path}"
+        return v
+    
     # CORS
     BACKEND_CORS_ORIGINS: list[str] = [
         "http://localhost:3000",
@@ -28,6 +42,19 @@ class Settings(BaseSettings):
         "http://localhost",
         "https://localhost",
     ]
+
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: any) -> list[str]:
+        if isinstance(v, str):
+            if v.startswith("[") and v.endswith("]"):
+                import json
+                try:
+                    return json.loads(v)
+                except Exception:
+                    pass
+            return [i.strip() for i in v.split(",") if i.strip()]
+        return v
     
     # Media Storage
     UPLOAD_DIR: str = str(BASE_DIR / "static" / "uploads")

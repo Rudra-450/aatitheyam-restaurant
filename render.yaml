@@ -1,0 +1,61 @@
+# Render Blueprint configuration for Aatitheyam Cafe & Bhojnalaya
+# https://render.com/docs/blueprint-spec
+
+databases:
+  - name: aatitheyam-postgres
+    databaseName: restaurant_db
+    user: postgres
+    plan: free
+    region: oregon
+
+services:
+  # 1. FastAPI Backend API
+  - type: web
+    name: aatitheyam-backend
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2"
+    envVars:
+      - key: PROJECT_NAME
+        value: "Aatitheyam Cafe & Bhojnalaya"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: COOKIE_NAME
+        value: "restaurant_owner_session"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "10080"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aatitheyam-postgres
+          property: connectionString
+      - key: BACKEND_CORS_ORIGINS
+        value: "https://aatitheyam-frontend.onrender.com,http://localhost:5173"
+      - key: PUBLIC_MENU_BASE_URL
+        value: "https://aatitheyam-frontend.onrender.com/menu"
+
+  # 2. React Vite Frontend
+  - type: web
+    name: aatitheyam-frontend
+    runtime: static
+    region: oregon
+    plan: free
+    buildCommand: "cd frontend && npm install && npm run build"
+    staticPublishPath: "frontend/dist"
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=0, must-revalidate
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: aatitheyam-backend
+          property: host

@@ -70,15 +70,22 @@ export const MenuHeader: React.FC<MenuHeaderProps> = ({ restaurant }) => {
           )}
         </div>
 
-        {/* Live View-Only Notice */}
-        <div className="mt-4 flex items-center justify-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span className="text-xs font-medium text-emerald-400 tracking-wide uppercase">
-            Live Restaurant Menu • In-House Dining Experience
-          </span>
+        {/* Live View-Only Notice & Menu Policy */}
+        <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-medium text-emerald-400 tracking-wide uppercase">
+              Live Restaurant Menu • Pure Veg Dining
+            </span>
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300">
+            <span className="font-semibold text-amber-400 uppercase tracking-wider text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded">Note</span>
+            <span>Half portions will be charged 30% extra</span>
+          </div>
         </div>
       </div>
     </header>

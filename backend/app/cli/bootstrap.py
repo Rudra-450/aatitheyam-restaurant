@@ -161,46 +161,9 @@ async def seed_data(
         else:
             print(f"[*] Owner account '{admin_username}' already exists.")
 
-        # Seed categories if none exist
-        cat_count_stmt = select(Category).where(Category.restaurant_id == restaurant.id)
-        existing_cats = (await session.execute(cat_count_stmt)).scalars().all()
-        cat_map: dict[str, str] = {}
-        if not existing_cats:
-            for cat_data in INITIAL_CATEGORIES:
-                cat = Category(
-                    restaurant_id=restaurant.id,
-                    name=cat_data["name"],
-                    display_order=cat_data["display_order"],
-                    is_active=True,
-                )
-                session.add(cat)
-                await session.flush()
-                cat_map[cat.name] = cat.id
-            await session.commit()
-            print(f"[+] Seeded {len(INITIAL_CATEGORIES)} menu categories.")
-        else:
-            cat_map = {c.name: c.id for c in existing_cats}
-
-        # Seed food items if none exist
-        food_count_stmt = select(FoodItem).where(FoodItem.restaurant_id == restaurant.id)
-        existing_foods = (await session.execute(food_count_stmt)).scalars().all()
-        if not existing_foods:
-            for item in INITIAL_FOOD_ITEMS:
-                cat_id = cat_map.get(item["category"])
-                if cat_id:
-                    food = FoodItem(
-                        restaurant_id=restaurant.id,
-                        category_id=cat_id,
-                        name=item["name"],
-                        price=item["price"],
-                        food_type=item["food_type"],
-                        image_url=item["image_url"],
-                        is_available=item["is_available"],
-                        display_order=item["display_order"],
-                    )
-                    session.add(food)
-            await session.commit()
-            print(f"[+] Seeded {len(INITIAL_FOOD_ITEMS)} luxury menu items.")
+        # Seed categories and food items using complete restaurant menu system
+        from scripts.seed_restaurant_menu import seed_restaurant_menu
+        await seed_restaurant_menu()
 
 if __name__ == "__main__":
     username = sys.argv[1] if len(sys.argv) > 1 else "admin"
