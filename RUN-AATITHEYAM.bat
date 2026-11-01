@@ -1,24 +1,25 @@
 @echo off
-title Aatitheyam Cafe & Bhojnalaya Launcher
+title Aatitheyam Cafe & Bhojnalaya - Digital Menu Platform
 echo ====================================================================
-echo   Launching Aatitheyam Cafe & Bhojnalaya - Digital Menu Platform
+echo   Starting Aatitheyam Cafe & Bhojnalaya - Digital Menu Platform
 echo ====================================================================
 echo.
-echo [*] Starting Backend API Server (Port 8000)...
-start "Aatitheyam Backend API" "%~dp0start-backend.bat"
+cd /d "%~dp0backend"
 
-echo [*] Starting Frontend Web Server (Port 5173)...
-start "Aatitheyam Frontend" "%~dp0start-frontend.bat"
+echo [*] Launching application on http://localhost:8000 ...
+echo [*] Press Ctrl+C in this window anytime to stop the server.
+echo.
 
-echo [*] Waiting for services to initialize...
-timeout /t 4 /nobreak > nul
+:: Automatically open browser after 2 seconds in background
+start "" cmd /c "timeout /t 2 /nobreak > nul && start http://localhost:8000/menu"
 
-echo [*] Opening Customer Digital Menu in your browser...
-start http://localhost:5173/menu
+:: Start unified server (serves both React Frontend and FastAPI Backend)
+if exist "venv\Scripts\python.exe" (
+    venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+) else (
+    python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+)
 
 echo.
-echo ====================================================================
-echo   The system is now running!
-echo   Customer Menu:    http://localhost:5173/menu
-echo   Owner Dashboard:  http://localhost:5173/admin
-echo ====================================================================
+echo Server stopped.
+pause

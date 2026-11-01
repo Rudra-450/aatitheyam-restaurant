@@ -60,3 +60,27 @@ async def health_check():
 
 # Include API v1 router
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+# Mount compiled frontend dist for unified serving
+frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+if frontend_dist.exists():
+    from starlette.responses import FileResponse
+
+    # Serve static frontend assets (/assets/...)
+    assets_dir = frontend_dist / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="frontend_assets")
+
+    # Catch-all SPA route for React Router (/menu, /admin, /login, etc.)
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        # Exclude /api, /uploads, /health, /docs, /redoc, /openapi.json from SPA fallback
+        if full_path.startswith(("api/", "uploads/", "health", "docs", "redoc", "openapi.json")):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="API route not found")
+
+        file_candidate = frontend_dist / full_path
+        if full_path and file_candidate.exists() and file_candidate.is_file():
+            return FileResponse(file_candidate)
+        return FileResponse(frontend_dist / "index.html")
+
